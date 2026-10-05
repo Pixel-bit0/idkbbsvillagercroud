@@ -1,0 +1,18 @@
+{
+	"schemaVersion": 1,
+	"id": "crowdreplay",
+	"version": "${version}",
+	"name": "BBS Crowd Actors",
+	"description": "Adds a button next to the replay editor button in the BBS film editor that spawns a crowd of actors from the selected one, with run and stop keyframes.",
+	"license": "MIT",
+	"environment": "client",
+	"mixins": [
+		{ "config": "crowdreplay.client.mixins.json", "environment": "client" }
+	],
+	"depends": {
+		"fabricloader": ">=0.15.0",
+		"minecraft": "~1.20",
+		"java": ">=17",
+		"bbs": "*"
+	}
+}
