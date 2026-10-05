@@ -1,0 +1,46 @@
+name: build
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Wemppy4/bbs-fs
+          ref: 1.20.1
+          path: bbs-src
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Publish BBS to the local Maven repository
+        working-directory: bbs-src
+        run: |
+          chmod +x gradlew
+          ./gradlew publishToMavenLocal
+
+      - name: Read the versions BBS was built with
+        run: |
+          p() { grep "^$1=" bbs-src/gradle.properties | cut -d= -f2- | tr -d '\r'; }
+          echo "MC=$(p minecraft_version)" >> $GITHUB_ENV
+          echo "YARN=$(p yarn_mappings)" >> $GITHUB_ENV
+          echo "LOADER=$(p loader_version)" >> $GITHUB_ENV
+          echo "FABRIC=$(p fabric_version)" >> $GITHUB_ENV
+          echo "BBSVER=$(p mod_version)-$(p minecraft_version)" >> $GITHUB_ENV
+
+      - name: Build the add-on
+        working-directory: crowd-addon
+        run: |
+          cp -r ../bbs-src/gradle ./gradle
+          cp ../bbs-src/gradlew ./gradlew
+          chmod +x gradlew
+          ./gradlew build -Pminecraft_version=$MC -Pyarn_mappings=$YARN -Ploader_version=$LOADER -Pfabric_version=$FABRIC -Pbbs_version=$BBSVER
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crowdreplay-jar
+          path: crowd-addon/build/libs/*.jar
